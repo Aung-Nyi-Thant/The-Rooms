@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String   @id @default(uuid())
+  username         String   @unique
+  access_key_hash  String
+  role             String   @default("user") // "admin" or "user"
+  created_at       DateTime @default(now())
+  last_login       DateTime?
+  status           String   @default("active") // "active", "suspended", etc.
+
+  // Relations
+  chats            ChatMember[]
+  messages         Message[]
+  created_tokens   SignupToken[]
+
+  @@map("users")
+}
+
+model Invite {
+  id         String    @id @default(uuid())
+  code_hash  String    @unique
+  expires_at DateTime?
+  used_at    DateTime?
+  used_by    String?
+
+  @@map("invites")
+}
+
+model SignupToken {
+  id          String    @id @default(uuid())
+  token_hash  String    @unique
+  expires_at  DateTime?
+  used_at     DateTime?
+  used_by     String?
+  created_by      String
+  creator         User      @relation(fields: [created_by], references: [id])
+  created_at      DateTime  @default(now())
+
+  @@map("signup_tokens")
+}
+
+model Chat {
+  id        String       @id @default(uuid())
+  type      String       @default("personal") // "personal", "group"
+  name      String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  
+  members   ChatMember[]
+  messages  Message[]
+
+  @@map("chats")
+}
+
+model ChatMember {
+  id        String   @id @default(uuid())
+  chatId    String
+  userId    String
+  role      String   @default("member") // "owner", "admin", "member"
+  joinedAt  DateTime @default(now())
+  
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, userId])
+  @@map("chat_members")
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  chatId    String
+  senderId  String
+  content   String
+  type      String   @default("text") // "text", "image", "voice", "system"
+  createdAt DateTime @default(now())
+  expiresAt DateTime? // For ephemeral messages
+
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([chatId])
+  @@map("messages")
+}
