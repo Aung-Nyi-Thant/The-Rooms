@@ -272,17 +272,6 @@ This project demonstrates:
 - Responsive UI/UX design
 - Security best practices
 
-## 🤝 Contributing
-
-This is a university project. For academic integrity, please do not copy directly.
-
-## 📄 License
-
-This project is created for educational purposes.
-
-## 👨‍💻 Author
-
-Created as a university project demonstrating modern web development practices.
 
 ---
 
